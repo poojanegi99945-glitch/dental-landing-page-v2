@@ -14,18 +14,35 @@ interface StaticBeforeAfterProps {
 export function StaticBeforeAfterImage({ caseData, className = "" }: StaticBeforeAfterProps) {
   const { clinicalType, imageUrl } = caseData;
   const [imgFailed, setImgFailed] = useState(false);
+  const [currentSrc, setCurrentSrc] = useState<string | undefined>(imageUrl);
+  const [hasTriedLower, setHasTriedLower] = useState(false);
+
+  React.useEffect(() => {
+    setCurrentSrc(imageUrl);
+    setImgFailed(false);
+    setHasTriedLower(false);
+  }, [imageUrl]);
+
+  const handleImgError = () => {
+    if (!hasTriedLower && currentSrc && currentSrc !== currentSrc.toLowerCase()) {
+      setHasTriedLower(true);
+      setCurrentSrc(currentSrc.toLowerCase());
+    } else {
+      setImgFailed(true);
+    }
+  };
 
   // If caseData has an image specified and it hasn't failed to load, render the actual photo
-  if (imageUrl && !imgFailed) {
+  if (currentSrc && !imgFailed) {
     return (
       <div
         className={`relative aspect-[16/10] w-full select-none overflow-hidden rounded-2xl bg-[#090b10] border border-border shadow-xs ${className}`}
       >
         <img
-          src={imageUrl}
+          src={currentSrc}
           alt={`${caseData.concern} Before and After Treatment Result`}
           className="h-full w-full object-cover"
-          onError={() => setImgFailed(true)}
+          onError={handleImgError}
           referrerPolicy="no-referrer"
         />
         {/* BEFORE Badge */}

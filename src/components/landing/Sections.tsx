@@ -24,62 +24,145 @@ import { useLead, track, scrollToId } from "@/lib/lead";
 import { clinic } from "@/lib/clinic-config";
 import { cn } from "@/lib/utils";
 
+/**
+ * Iconic Precision Dental Tooth Emblem & Brandmark
+ */
+export function DentalLogo({
+  size = "md",
+  light = false,
+}: {
+  size?: "sm" | "md" | "lg";
+  light?: boolean;
+}) {
+  const isSm = size === "sm";
+  const isLg = size === "lg";
+
+  return (
+    <div
+      onClick={() => scrollToId("hero")}
+      className="flex items-center gap-2.5 sm:gap-3 group cursor-pointer select-none"
+    >
+      {/* Precision Dental Tooth Emblem */}
+      <div
+        className={cn(
+          "relative flex shrink-0 items-center justify-center rounded-xl transition-all duration-200 group-hover:scale-105 shadow-xs",
+          isSm ? "h-8 w-8" : isLg ? "h-11 w-11" : "h-10 w-10",
+          light
+            ? "bg-white/10 border border-white/20 text-white"
+            : "bg-gradient-to-br from-[#123e4f] via-primary to-[#051c24] text-white border border-primary/20 shadow-primary/10"
+        )}
+      >
+        <svg
+          viewBox="0 0 40 40"
+          className={cn(isSm ? "h-5 w-5" : isLg ? "h-7 w-7" : "h-6 w-6")}
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-label="Dental Clinic Tooth Logo"
+        >
+          <defs>
+            <linearGradient id={`toothFill-${size}-${light ? "l" : "d"}`} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#FFFFFF" />
+              <stop offset="100%" stopColor="#E6F5F8" />
+            </linearGradient>
+            <linearGradient id={`arcGrad-${size}`} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#38E1F2" />
+              <stop offset="100%" stopColor="#0EA5B7" />
+            </linearGradient>
+          </defs>
+
+          {/* Anatomical Tooth with Crown and Dual Roots */}
+          <path
+            d="M12 7C8 8.4 5.5 12.2 5.5 16.8C5.5 23.2 9.5 29.2 13 34.5C13.8 35.8 15.6 35.8 16.5 34.2C17.8 31.8 19 28 19.8 25C20.2 28 21.4 31.8 22.7 34.2C23.6 35.8 25.4 35.8 26.2 34.5C29.7 29.2 33.7 23.2 33.7 16.8C33.7 12.2 31.2 8.4 27.2 7C23.4 5.6 21 8 19.8 8C18.6 8 16.2 5.6 12 7Z"
+            fill={`url(#toothFill-${size}-${light ? "l" : "d"})`}
+            stroke={light ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.2)"}
+            strokeWidth="0.8"
+          />
+
+          {/* Gentle Smile Arc across anterior crown */}
+          <path
+            d="M10.5 18C13.8 22.8 25.4 22.8 28.7 18"
+            stroke={`url(#arcGrad-${size})`}
+            strokeWidth="2.6"
+            strokeLinecap="round"
+          />
+
+          {/* Orthodontic Alignment Node / Diamond Sparkle */}
+          <path
+            d="M27.5 10.5L28.5 7.5L29.5 10.5L32.5 11.5L29.5 12.5L28.5 15.5L27.5 12.5L24.5 11.5L27.5 10.5Z"
+            fill="#38E1F2"
+          />
+        </svg>
+      </div>
+
+      {/* Typography Brandmark */}
+      <div className="flex flex-col justify-center">
+        <div className="flex items-center gap-1.5">
+          <span
+            className={cn(
+              "font-serif font-bold tracking-tight leading-none",
+              isSm ? "text-base" : isLg ? "text-2xl" : "text-xl",
+              light ? "text-white" : "text-primary"
+            )}
+          >
+            {clinic.shortName}
+          </span>
+          <span
+            className={cn(
+              "rounded px-1.5 py-0.5 text-[9px] font-bold tracking-wider uppercase leading-none border",
+              light
+                ? "bg-white/10 text-white border-white/20"
+                : "bg-accent/15 text-accent border-accent/25"
+            )}
+          >
+            DENTAL
+          </span>
+        </div>
+        <span
+          className={cn(
+            "text-[10px] font-medium tracking-wider uppercase leading-none mt-1",
+            light ? "text-deep-muted" : "text-muted-foreground"
+          )}
+        >
+          Orthodontics · Chennai
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export function Header() {
   return (
-    <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-border/70 bg-background/90 backdrop-blur-md transition-all">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5">
-        <div className="flex items-center gap-3">
-          {/* Dental Tooth Logo Symbol */}
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-white shadow-xs border border-primary/20">
-            <svg
-              viewBox="0 0 24 24"
-              className="h-5 w-5"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-label="Dental Clinic Logo"
-            >
-              {/* Distinctive Tooth Outline & Crown */}
-              <path
-                d="M7.5 3.5C5.2 4.2 3.5 6.5 3.5 9.2C3.5 13.2 5.8 17 8 20.6C8.5 21.4 9.6 21.4 10.1 20.5C10.9 18.9 11.6 16.5 12 14.8C12.4 16.5 13.1 18.9 13.9 20.5C14.4 21.4 15.5 21.4 16 20.6C18.2 17 20.5 13.2 20.5 9.2C20.5 6.5 18.8 4.2 16.5 3.5C14.2 2.8 12.8 4.2 12 4.2C11.2 4.2 9.8 2.8 7.5 3.5Z"
-                fill="#ffffff"
-              />
-              {/* Smile contour */}
-              <path
-                d="M8.5 10C9.8 12.2 14.2 12.2 15.5 10"
-                stroke="#18AEC0"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
+        {/* Brand Dental Logo */}
+        <DentalLogo />
 
-          <div className="flex items-baseline gap-2">
-            <span className="font-serif text-xl font-bold text-primary tracking-tight">
-              {clinic.shortName}
-            </span>
-            <span className="hidden text-xs font-medium text-muted-foreground md:inline">
-              Orthodontic Care · Chennai
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
+        {/* Right Action Cluster */}
+        <div className="flex items-center gap-2.5 sm:gap-3">
           <a
             href={clinic.phoneHref}
             onClick={() => track("phone_clicked")}
-            className="flex h-11 items-center gap-2 rounded-full px-3.5 text-sm font-medium text-foreground hover:bg-secondary transition"
+            className="flex h-10 items-center gap-2 rounded-full px-3 text-sm font-medium text-foreground hover:bg-secondary transition border border-border/60 bg-card/60 shadow-2xs"
             aria-label={`Call ${clinic.phone}`}
           >
-            <Phone className="h-4 w-4 text-accent" />
-            <span className="hidden sm:inline font-sans text-sm font-medium text-foreground tracking-tight">
+            <div className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </div>
+            <Phone className="h-3.5 w-3.5 text-accent" />
+            <span className="font-sans text-xs font-semibold text-foreground tracking-tight">
               {clinic.phone}
             </span>
           </a>
+
           <Btn
-            className="hidden md:inline-flex min-h-10 text-xs py-2 px-5"
-            onClick={() => scrollToId("book")}
+            className="min-h-10 text-xs py-2 px-4 sm:px-5 shadow-xs"
+            onClick={() => {
+              track("hero_cta_click", { location: "header" });
+              scrollToId("book");
+            }}
           >
-            Book Aligner Consultation
+            Book Consultation
           </Btn>
         </div>
       </div>
@@ -631,16 +714,18 @@ export function FinalBooking() {
 
 export function Footer() {
   return (
-    <footer className="bg-deep px-5 pb-28 pt-10 text-xs text-deep-muted md:pb-10 border-t border-deep-line">
-      <div className="mx-auto max-w-5xl flex flex-col md:flex-row items-center justify-between gap-6">
-        <div>
-          <p className="font-serif text-lg font-bold text-white">{clinic.name}</p>
-          <p className="mt-1">
-            Orthodontic Care · {clinic.area} · Phone: {clinic.phone}
-          </p>
-          <p className="mt-1 text-[11px] text-deep-muted/80">
-            {clinic.experienceText} · {clinic.reviewRatingText}
-          </p>
+    <footer className="bg-deep px-5 pb-28 pt-12 text-xs text-deep-muted md:pb-12 border-t border-deep-line">
+      <div className="mx-auto max-w-6xl flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+          <DentalLogo size="md" light={true} />
+          <div className="sm:border-l sm:border-white/15 sm:pl-4 sm:ml-2">
+            <p className="text-white/90 font-medium">
+              Orthodontic Care · {clinic.area} · Phone: {clinic.phone}
+            </p>
+            <p className="mt-1 text-[11px] text-deep-muted/80">
+              {clinic.experienceText} · {clinic.reviewRatingText}
+            </p>
+          </div>
         </div>
 
         <div>
@@ -648,7 +733,7 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-5xl border-t border-deep-line/60 mt-8 pt-4 text-center md:text-left text-[11px] text-deep-muted/70">
+      <div className="mx-auto max-w-6xl border-t border-deep-line/60 mt-8 pt-4 text-center md:text-left text-[11px] text-deep-muted/70">
         © {clinic.name}. Information on this page is general and not a diagnosis. Suitability for
         any treatment is determined after clinical assessment.
       </div>
