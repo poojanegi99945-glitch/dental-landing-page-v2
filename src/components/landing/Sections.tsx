@@ -410,7 +410,7 @@ export function NextSteps() {
     <section id="steps" className="bg-aqua px-5 py-20 md:py-28 border-b border-border/60">
       <SectionHead
         eyebrow="THE PROCESS"
-        title={`What Happens When You Book at ${clinic.shortName}?`}
+        title="What happens when you book?"
         sub="A straightforward, transparent clinical pathway from your first consultation request to your personalized treatment plan."
       />
       <ol className="mx-auto mt-12 max-w-2xl">
