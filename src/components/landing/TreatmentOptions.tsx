@@ -193,7 +193,7 @@ export function TreatmentOptions() {
         {/* Section Header */}
         <SectionHead
           eyebrow="OUR ORTHODONTIC SERVICES"
-          title="Explore Orthodontic Care at ABC"
+          title="Explore Our Orthodontic Care"
           sub="From your first orthodontic assessment to ongoing treatment support, explore orthodontic care available at ABC in Anna Nagar, Chennai."
         />
 
