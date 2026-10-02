@@ -336,7 +336,7 @@ export function Offer() {
           ) : (
             <>
               <h3 className="mb-5 font-serif text-2xl text-primary">Request your consultation</h3>
-              <BookingForm cta="Request My Consultation" />
+              <BookingForm full cta="Request My Consultation" />
             </>
           )}
         </div>

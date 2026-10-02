@@ -9,12 +9,12 @@ import { Btn, Field, inputCls, Segmented } from "./ui";
 import { useLead, track } from "@/lib/lead";
 import { clinic } from "@/lib/clinic-config";
 
-export function BookingForm({ full, cta = "Request My Consultation" }: { full?: boolean; cta?: string }) {
+export function BookingForm({ full = true, cta = "Request My Consultation" }: { full?: boolean; cta?: string }) {
   const { lead, submit, checkDone } = useLead();
   const [name, setName] = useState(lead.name);
   const [phone, setPhone] = useState(lead.phone);
   const [contact, setContact] = useState(lead.preferredContactMethod || "WhatsApp");
-  const [time, setTime] = useState(lead.preferredAppointmentTime);
+  const [time, setTime] = useState(lead.preferredAppointmentTime || "Morning");
   const [err, setErr] = useState("");
   const [started, setStarted] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -37,7 +37,7 @@ export function BookingForm({ full, cta = "Request My Consultation" }: { full?: 
       name: name.trim(),
       phone,
       preferredContactMethod: contact,
-      preferredAppointmentTime: time,
+      preferredAppointmentTime: time || "Morning",
     });
     setBusy(false);
     document.getElementById("success")?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -51,6 +51,7 @@ export function BookingForm({ full, cta = "Request My Consultation" }: { full?: 
           value={name}
           onChange={(e) => setName(e.target.value)}
           autoComplete="name"
+          placeholder="e.g. Priya Sundaram"
           required
         />
       </Field>
@@ -85,7 +86,7 @@ export function BookingForm({ full, cta = "Request My Consultation" }: { full?: 
           <Segmented
             name="Preferred appointment"
             options={["Morning", "Afternoon", "Evening"]}
-            value={time}
+            value={time || "Morning"}
             onChange={setTime}
           />
         </div>
@@ -143,6 +144,7 @@ export function SuccessState() {
             ["Concern", lead.concern],
             ["Interest", lead.treatmentInterest],
             ["Timing", lead.treatmentTimeline],
+            ["Preferred Time", lead.preferredAppointmentTime],
             ["Preferred Contact", lead.preferredContactMethod],
           ]
             .filter(([, v]) => v)
