@@ -1,0 +1,6 @@
+{
+  "name": "Dental Landing Page - Orthodontic Consultation",
+  "description": "Explore braces and clear aligners with an orthodontist. Take a 60-second Smile Check and request your orthodontic consultation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
