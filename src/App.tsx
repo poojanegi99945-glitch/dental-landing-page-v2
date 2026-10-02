@@ -22,6 +22,7 @@ import {
 import { TreatmentOptions } from "@/components/landing/TreatmentOptions";
 import { CompareSection } from "@/components/landing/CompareSection";
 import { BeforeAfterResults } from "@/components/landing/BeforeAfterResults";
+import { LeadGamesLeadPopup } from "@/components/landing/LeadGamesLeadPopup";
 
 export default function App() {
   return (
@@ -76,6 +77,9 @@ export default function App() {
       {/* 19. Footer & Persistent Mobile CTA */}
       <Footer />
       <MobileBar />
+
+      {/* Lead Games B2B Lead Capture Popup (10s timer, once per session) */}
+      <LeadGamesLeadPopup />
     </LeadProvider>
   );
 }
