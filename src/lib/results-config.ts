@@ -3,6 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import crowdingImg from "@/assets/CROWDING.png";
+import spacingImg from "@/assets/SPACING.png";
+import crookedTeethImg from "@/assets/CROOKED_TEETH.png";
+import forwardlyPlacedImg from "@/assets/FORWARDLY_PLACED.png";
+import deepBiteImg from "@/assets/DEEP_BITE.png";
+import openBiteImg from "@/assets/OPEN_BITE.png";
+
 export type ResultFilterTag =
   | "all"
   | "crowding"
@@ -60,7 +67,7 @@ export const STATIC_RESULTS: StaticResultCase[] = [
       "Patient presented with moderate upper and lower anterior crowding and rotation. Planned with sequential aligner staging to coordinate arch form.",
     tags: ["crowding", "clear-aligners"],
     clinicalType: "crowding",
-    imageUrl: "/CROWDING.png",
+    imageUrl: crowdingImg,
   },
   {
     id: "case-02",
@@ -73,7 +80,7 @@ export const STATIC_RESULTS: StaticResultCase[] = [
       "Midline diastema and anterior generalized spacing managed discreetly with clear aligners while maintaining posterior canine guidance.",
     tags: ["spacing", "clear-aligners"],
     clinicalType: "spacing",
-    imageUrl: "/SPACING.png",
+    imageUrl: spacingImg,
   },
   {
     id: "case-03",
@@ -85,7 +92,7 @@ export const STATIC_RESULTS: StaticResultCase[] = [
       "Severely displaced lateral incisors and rotated premolars aligned with low-friction ceramic fixed appliances.",
     tags: ["crooked-teeth", "braces", "crowding"],
     clinicalType: "crooked",
-    imageUrl: "/CROOKED.png",
+    imageUrl: crookedTeethImg,
   },
   {
     id: "case-04",
@@ -97,7 +104,7 @@ export const STATIC_RESULTS: StaticResultCase[] = [
       "Excessive anterior overjet with proinclined upper front teeth. Corrected with coordinated fixed orthodontic biomechanics.",
     tags: ["forwardly-placed", "braces"],
     clinicalType: "forward",
-    imageUrl: "/FORWARD.png",
+    imageUrl: forwardlyPlacedImg,
   },
   {
     id: "case-05",
@@ -110,7 +117,7 @@ export const STATIC_RESULTS: StaticResultCase[] = [
       "Excessive vertical overbite covering lower incisors. Leveled curve of Spee and intrusion ramps re-established functional occlusal clearance.",
     tags: ["deep-bite", "clear-aligners"],
     clinicalType: "deep-bite",
-    imageUrl: "/DEEP_BITE.png",
+    imageUrl: deepBiteImg,
   },
   {
     id: "case-06",
@@ -122,6 +129,6 @@ export const STATIC_RESULTS: StaticResultCase[] = [
       "Anterior open bite with lack of vertical incisal contact. Vertical mechanics and tongue posture guidance achieved positive anterior overlap.",
     tags: ["open-bite", "braces"],
     clinicalType: "open-bite",
-    imageUrl: "/OPEN_BITE.png",
+    imageUrl: openBiteImg,
   },
 ];

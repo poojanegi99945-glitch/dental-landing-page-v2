@@ -22,7 +22,6 @@ import {
 import { TreatmentOptions } from "@/components/landing/TreatmentOptions";
 import { CompareSection } from "@/components/landing/CompareSection";
 import { BeforeAfterResults } from "@/components/landing/BeforeAfterResults";
-import { SmilePreview } from "@/components/landing/SmilePreview";
 
 export default function App() {
   return (
@@ -57,9 +56,6 @@ export default function App() {
 
         {/* 11. REAL PEOPLE. REAL SMILE JOURNEYS (Static Before/After results) */}
         <BeforeAfterResults />
-
-        {/* 12. STATIC SMILE PREVIEW SHOWCASE */}
-        <SmilePreview />
 
         {/* 13. What Happens When You Book? */}
         <NextSteps />

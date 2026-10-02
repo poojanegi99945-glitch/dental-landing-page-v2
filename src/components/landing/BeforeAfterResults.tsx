@@ -14,6 +14,10 @@ import {
   Clock,
   Layers,
   Target,
+  Camera,
+  Upload,
+  Link as LinkIcon,
+  RotateCcw,
 } from "lucide-react";
 import {
   STATIC_RESULTS,
@@ -31,7 +35,44 @@ export function BeforeAfterResults() {
   const [activeModalCase, setActiveModalCase] = useState<StaticResultCase | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const hasTracked = useRef<boolean>(false);
+  const [, setCustomImgState] = useState<number>(0);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && activeModalCase) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        try {
+          localStorage.setItem(`custom_case_img_${activeModalCase.id}`, dataUrl);
+          window.dispatchEvent(new Event("case_image_updated"));
+          setCustomImgState((prev) => prev + 1);
+        } catch {
+          window.alert("Image is large for browser storage. Please try a compressed image under 2MB or use a URL.");
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUrlPrompt = () => {
+    if (!activeModalCase) return;
+    const url = window.prompt(`Enter image URL for ${activeModalCase.concern} (PNG, JPG, or WebP):`);
+    if (url && url.trim()) {
+      localStorage.setItem(`custom_case_img_${activeModalCase.id}`, url.trim());
+      window.dispatchEvent(new Event("case_image_updated"));
+      setCustomImgState((prev) => prev + 1);
+    }
+  };
+
+  const handleResetImage = () => {
+    if (!activeModalCase) return;
+    localStorage.removeItem(`custom_case_img_${activeModalCase.id}`);
+    window.dispatchEvent(new Event("case_image_updated"));
+    setCustomImgState((prev) => prev + 1);
+  };
 
   // Filter cases
   const filteredCases = STATIC_RESULTS.filter((c) => {
@@ -258,6 +299,48 @@ export function BeforeAfterResults() {
 
             <div className="mt-5">
               <StaticBeforeAfterImage caseData={activeModalCase} className="aspect-[16/10]" />
+
+              {/* In-App Clinic Photo Uploader */}
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-secondary/50 p-2.5 text-xs border border-border">
+                <span className="font-medium text-foreground flex items-center gap-1.5">
+                  <Camera className="h-3.5 w-3.5 text-accent" />
+                  Clinic Case Photo:
+                </span>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="inline-flex items-center gap-1 rounded-lg bg-card px-2.5 py-1 text-xs font-semibold text-primary border border-border hover:bg-background transition cursor-pointer shadow-2xs"
+                  >
+                    <Upload className="h-3 w-3 text-accent" /> Upload Photo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleUrlPrompt}
+                    className="inline-flex items-center gap-1 rounded-lg bg-card px-2.5 py-1 text-xs font-semibold text-foreground border border-border hover:bg-background transition cursor-pointer shadow-2xs"
+                  >
+                    <LinkIcon className="h-3 w-3 text-muted-foreground" /> Paste URL
+                  </button>
+                  {typeof window !== "undefined" &&
+                    localStorage.getItem(`custom_case_img_${activeModalCase.id}`) && (
+                      <button
+                        type="button"
+                        onClick={handleResetImage}
+                        title="Reset to default illustration"
+                        className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-destructive hover:bg-destructive/10 transition cursor-pointer"
+                      >
+                        <RotateCcw className="h-3 w-3" /> Reset
+                      </button>
+                    )}
+                </div>
+              </div>
             </div>
 
             <dl className="mt-6 divide-y divide-border border-y border-border text-xs sm:text-sm">

@@ -14,17 +14,31 @@ interface StaticBeforeAfterProps {
 export function StaticBeforeAfterImage({ caseData, className = "" }: StaticBeforeAfterProps) {
   const { clinicalType, imageUrl } = caseData;
   const [imgFailed, setImgFailed] = useState(false);
-  const [currentSrc, setCurrentSrc] = useState<string | undefined>(imageUrl);
+  const [customSrc, setCustomSrc] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(`custom_case_img_${caseData.id}`);
+    }
+    return null;
+  });
+  const [currentSrc, setCurrentSrc] = useState<string | undefined>(customSrc || imageUrl);
   const [hasTriedLower, setHasTriedLower] = useState(false);
 
   React.useEffect(() => {
-    setCurrentSrc(imageUrl);
-    setImgFailed(false);
-    setHasTriedLower(false);
-  }, [imageUrl]);
+    const updateSrc = () => {
+      const saved = typeof window !== "undefined" ? localStorage.getItem(`custom_case_img_${caseData.id}`) : null;
+      setCustomSrc(saved);
+      setCurrentSrc(saved || imageUrl);
+      setImgFailed(false);
+      setHasTriedLower(false);
+    };
+
+    updateSrc();
+    window.addEventListener("case_image_updated", updateSrc);
+    return () => window.removeEventListener("case_image_updated", updateSrc);
+  }, [caseData.id, imageUrl]);
 
   const handleImgError = () => {
-    if (!hasTriedLower && currentSrc && currentSrc !== currentSrc.toLowerCase()) {
+    if (!hasTriedLower && currentSrc && !currentSrc.startsWith("data:") && currentSrc !== currentSrc.toLowerCase()) {
       setHasTriedLower(true);
       setCurrentSrc(currentSrc.toLowerCase());
     } else {
