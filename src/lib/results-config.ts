@@ -41,6 +41,7 @@ export interface StaticResultCase {
   description: string;
   tags: ResultFilterTag[];
   clinicalType: "crowding" | "spacing" | "crooked" | "forward" | "open-bite" | "deep-bite";
+  imageUrl?: string;
 }
 
 /**
@@ -59,6 +60,7 @@ export const STATIC_RESULTS: StaticResultCase[] = [
       "Patient presented with moderate upper and lower anterior crowding and rotation. Planned with sequential aligner staging to coordinate arch form.",
     tags: ["crowding", "clear-aligners"],
     clinicalType: "crowding",
+    imageUrl: "/CROWDING.png",
   },
   {
     id: "case-02",
