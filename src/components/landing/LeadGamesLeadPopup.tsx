@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { X, CheckCircle2, ArrowRight, Sparkles } from "lucide-react";
+import { X, CheckCircle2, ArrowRight, Sparkles, AlertCircle } from "lucide-react";
 
 export interface LeadGamesLeadData {
   name: string;
@@ -52,28 +52,47 @@ export function dispatchLeadGamesAnalytics(
 }
 
 /**
- * Clean reusable submission function ready for CRM / n8n / Webhook connection.
+ * Server-side submission function calling /api/lead-games-enquiry -> Twenty CRM
  */
 export async function submitLeadGamesEnquiry(
   lead: LeadGamesLeadData,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // Record lead safely in browser storage for testing & durability
-    const existingRaw = localStorage.getItem("lead_games_leads");
-    const existing: LeadGamesLeadData[] = existingRaw
-      ? JSON.parse(existingRaw)
-      : [];
-    existing.push(lead);
-    localStorage.setItem("lead_games_leads", JSON.stringify(existing));
+    const response = await fetch("/api/lead-games-enquiry", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(lead),
+    });
 
-    // Simulated network turn (900ms) for realistic UX and loading state
-    await new Promise((resolve) => setTimeout(resolve, 900));
+    if (!response.ok) {
+      let errorMessage = "We couldn't submit your enquiry right now. Please try again.";
+      try {
+        const errorJson = await response.json();
+        if (errorJson && typeof errorJson.error === "string") {
+          errorMessage = errorJson.error;
+        }
+      } catch {
+        // Fall back to clean default error message
+      }
+      return { success: false, error: errorMessage };
+    }
+
+    const result = await response.json();
+
+    if (!result.success) {
+      return {
+        success: false,
+        error: result.error || result.message || "We couldn't submit your enquiry right now. Please try again.",
+      };
+    }
 
     return { success: true };
   } catch (err) {
     return {
       success: false,
-      error: err instanceof Error ? err.message : "Failed to submit lead",
+      error: "We couldn't submit your enquiry right now. Please check your internet connection and try again.",
     };
   }
 }
@@ -83,6 +102,7 @@ export function LeadGamesLeadPopup() {
   const [isMinimized, setIsMinimized] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [hasStartedForm, setHasStartedForm] = useState(false);
 
   // Form fields: EXACTLY FOUR (Name, Mobile Number, Email ID, Note)
@@ -339,6 +359,7 @@ export function LeadGamesLeadPopup() {
       return;
     }
 
+    setSubmitError(null);
     setIsSubmitting(true);
     dispatchLeadGamesAnalytics("lead_games_popup_submitted", {
       name: name.trim(),
@@ -368,8 +389,14 @@ export function LeadGamesLeadPopup() {
     if (res.success) {
       setHasSubmitted(true);
       setIsMinimized(false);
+      setSubmitError(null);
       sessionStorage.setItem("leadGamesPopupShown", "true");
+      sessionStorage.setItem("leadGamesPopupSubmitted", "true");
       dispatchLeadGamesAnalytics("lead_games_popup_success");
+    } else {
+      setSubmitError(
+        res.error || "We couldn't submit your enquiry right now. Please try again.",
+      );
     }
   };
 
@@ -621,6 +648,17 @@ export function LeadGamesLeadPopup() {
                         className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-white border border-slate-300 hover:border-slate-400 focus:border-[#5B3DF5] focus:ring-2 focus:ring-[#5B3DF5]/20 text-slate-900 placeholder:text-slate-400 outline-none transition-all resize-none"
                       />
                     </div>
+
+                    {/* Inline Error Message */}
+                    {submitError && (
+                      <div
+                        role="alert"
+                        className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium leading-relaxed flex items-start gap-2.5 animate-in fade-in duration-200"
+                      >
+                        <AlertCircle className="w-4 h-4 shrink-0 text-rose-500 mt-0.5" />
+                        <span>{submitError}</span>
+                      </div>
+                    )}
 
                     {/* Primary CTA */}
                     <button
