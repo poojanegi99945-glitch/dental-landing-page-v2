@@ -126,13 +126,28 @@ async function introspectTwentyMetadata(baseUrl: string, apiKey: string) {
         const name = field.name;
         const label = (field.label || '').toLowerCase();
 
+        // Strictly ignore built-in relations and non-writable fields
+        if (
+          type === 'RELATION' ||
+          name === 'noteTargets' ||
+          name.endsWith('Targets') ||
+          name === 'timelineActivities' ||
+          name === 'attachments' ||
+          name === 'favorites'
+        ) {
+          continue;
+        }
+
         if (type === 'EMAILS' || label.includes('email')) {
           mapping.email = name;
         } else if (type === 'PHONES' || label.includes('mobile') || label.includes('phone')) {
           mapping.mobile = name;
         } else if (label.includes('name') && !mapping.name) {
           mapping.name = name;
-        } else if (label.includes('note') || label.includes('message')) {
+        } else if (
+          (type === 'TEXT' || type === 'RICH_TEXT') &&
+          (name === 'note' || name === 'notes' || name === 'message' || label === 'note')
+        ) {
           mapping.note = name;
         }
       }
@@ -198,15 +213,15 @@ app.post('/api/lead-games-enquiry', async (req: Request, res: Response): Promise
   const trimmedNote = typeof note === 'string' ? note.trim().slice(0, 2000) : '';
 
   // 2. Check Twenty CRM environment variables
-  const twentyBaseUrl = (process.env.TWENTY_BASE_URL || '').trim().replace(/\/+$/, '');
+  const twentyBaseUrl = (process.env.TWENTY_BASE_URL || 'https://crm.169.58.3.64.sslip.io').trim().replace(/\/+$/, '');
   const twentyApiKey = (process.env.TWENTY_API_KEY || '').trim();
 
-  if (!twentyBaseUrl || !twentyApiKey) {
-    console.error('[Twenty CRM Error] Missing TWENTY_BASE_URL or TWENTY_API_KEY environment variables on server.');
+  if (!twentyApiKey) {
+    console.error('[Twenty CRM Error] Missing TWENTY_API_KEY environment variable on server.');
     res.status(503).json({
       success: false,
       error: 'We couldn’t submit your enquiry right now. Please try again.',
-      code: 'CRM_CONFIG_MISSING',
+      code: 'CRM_API_KEY_MISSING',
     });
     return;
   }
@@ -220,7 +235,20 @@ app.post('/api/lead-games-enquiry', async (req: Request, res: Response): Promise
   const nameFieldName = process.env.TWENTY_FIELD_NAME || introspected?.name || 'name';
   const emailFieldName = process.env.TWENTY_FIELD_EMAIL || introspected?.email || 'email';
   const mobileFieldName = process.env.TWENTY_FIELD_MOBILE || introspected?.mobile || 'mobile';
-  const noteFieldName = process.env.TWENTY_FIELD_NOTE || introspected?.note || 'note';
+  
+  // Note field: Only send if a custom text field was found or explicitly configured
+  let noteFieldName: string | undefined = process.env.TWENTY_FIELD_NOTE;
+  if (!noteFieldName && introspected) {
+    noteFieldName = introspected.note; // undefined if no custom text note field exists
+  } else if (!noteFieldName && !introspected) {
+    // If introspection failed, attempt 'note'
+    noteFieldName = 'note';
+  }
+
+  // Safety check: NEVER allow relation fields like noteTargets to be used as field names
+  if (noteFieldName === 'noteTargets' || noteFieldName?.endsWith('Targets')) {
+    noteFieldName = undefined;
+  }
 
   // Construct Twenty CRM composite structures
   const emailPayload = {
@@ -242,13 +270,13 @@ app.post('/api/lead-games-enquiry', async (req: Request, res: Response): Promise
     [mobileFieldName]: phonePayload,
   };
 
-  if (trimmedNote) {
+  if (trimmedNote && noteFieldName) {
     twentyPayload[noteFieldName] = trimmedNote;
   }
 
   const targetEndpoint = `${twentyBaseUrl}/rest/dentallandingpageadforms`;
 
-  console.info(`[Twenty CRM] Sending enquiry to ${targetEndpoint}...`);
+  console.info(`[Twenty CRM] Sending enquiry to ${targetEndpoint}...`, Object.keys(twentyPayload));
 
   try {
     let response = await fetch(targetEndpoint, {
@@ -260,8 +288,7 @@ app.post('/api/lead-games-enquiry', async (req: Request, res: Response): Promise
       body: JSON.stringify(twentyPayload),
     });
 
-    // If Twenty returns 400 Bad Request indicating a potential field name alternative
-    // (e.g. Twenty custom objects using 'emails' instead of 'email', or 'phones' instead of 'mobile')
+    // If Twenty returns 400 Bad Request indicating a field name alternative or unsupported relation
     if (response.status === 400) {
       const errText = await response.text();
       console.warn('[Twenty CRM 400 Warning]', errText);
@@ -269,30 +296,57 @@ app.post('/api/lead-games-enquiry', async (req: Request, res: Response): Promise
       let shouldRetry = false;
       const retryPayload = { ...twentyPayload };
 
-      // Check if error suggests 'emails' vs 'email'
-      if (errText.includes('emails') && emailFieldName === 'email') {
+      // 1. Remove noteTargets or relation fields if Twenty complains
+      if (
+        errText.includes('noteTargets') ||
+        errText.includes('does not support write operations') ||
+        errText.includes('relation') ||
+        errText.includes('note')
+      ) {
+        delete retryPayload.noteTargets;
+        delete retryPayload.note;
+        if (noteFieldName) {
+          delete retryPayload[noteFieldName];
+        }
+        shouldRetry = true;
+      }
+
+      // 2. Check if error suggests 'emails' vs 'email'
+      if (errText.includes('emails') && retryPayload.email) {
         delete retryPayload.email;
         retryPayload.emails = emailPayload;
         shouldRetry = true;
-      } else if (errText.includes('email') && emailFieldName === 'emails') {
+      } else if (errText.includes('email') && retryPayload.emails) {
         delete retryPayload.emails;
         retryPayload.email = emailPayload;
         shouldRetry = true;
       }
 
-      // Check if error suggests 'phones' vs 'mobile'
-      if (errText.includes('phones') && mobileFieldName === 'mobile') {
+      // 3. Check if error suggests 'phones' vs 'mobile'
+      if (errText.includes('phones') && retryPayload.mobile) {
         delete retryPayload.mobile;
         retryPayload.phones = phonePayload;
         shouldRetry = true;
-      } else if (errText.includes('mobile') && mobileFieldName === 'phones') {
+      } else if (errText.includes('mobile') && retryPayload.phones) {
         delete retryPayload.phones;
         retryPayload.mobile = phonePayload;
         shouldRetry = true;
       }
 
+      // 4. Strip any disallowed property explicitly named in error
+      const disallowedMatches = errText.match(/(?:property|Property|Field|field)\s+['"]?([a-zA-Z0-9_-]+)['"]?\s+(?:should not exist|is not allowed|does not exist)/gi);
+      if (disallowedMatches) {
+        for (const match of disallowedMatches) {
+          const propNameMatch = match.match(/(?:property|Property|Field|field)\s+['"]?([a-zA-Z0-9_-]+)['"]?/i);
+          if (propNameMatch && propNameMatch[1] && retryPayload[propNameMatch[1]] !== undefined) {
+            delete retryPayload[propNameMatch[1]];
+            shouldRetry = true;
+          }
+        }
+      }
+
       if (shouldRetry) {
-        console.info('[Twenty CRM] Retrying with alternative field names...', Object.keys(retryPayload));
+        console.info('[Twenty CRM] Retrying with sanitized payload keys:', Object.keys(retryPayload));
         response = await fetch(targetEndpoint, {
           method: 'POST',
           headers: {
